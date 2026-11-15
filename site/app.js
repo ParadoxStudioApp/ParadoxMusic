@@ -1,18 +1,18 @@
 // ParadoxMusic site: latest installer link, screenshot slider, reveal on scroll.
-// Everything degrades gracefully: without JS the buttons point to the Releases page.
+// Without JS the buttons directly download the stable installer.
 const REPO = "ParadoxStudioApp/ParadoxMusic";
 document.documentElement.classList.add("js");
 
-// 1. Latest Windows installer from GitHub Releases (pre-releases included, since the app is in beta).
+// 1. Latest stable Windows installer from GitHub Releases.
 (async () => {
   try {
-    const res = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=10`, {
+    const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
       headers: { Accept: "application/vnd.github+json" },
     });
     if (!res.ok) return;
-    const releases = await res.json();
+    const releases = [await res.json()];
     for (const release of releases) {
-      if (release.draft) continue;
+      if (release.draft || release.prerelease) continue;
       const asset = (release.assets || []).find((a) => /Setup\.exe$/i.test(a.name));
       if (!asset) continue;
       const version = String(release.tag_name || "").replace(/^v/, "");
@@ -28,7 +28,7 @@ document.documentElement.classList.add("js");
       return;
     }
   } catch {
-    // Offline or rate-limited: keep the Releases page link.
+    // Offline or rate-limited: keep the direct installer link.
   }
 })();
 
